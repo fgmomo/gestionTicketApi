@@ -16,10 +16,12 @@ public class UtilisateurController {
 
     @PostMapping("/create")
     public Utilisateur create( @RequestBody Utilisateur utilisateur){
+
         return utilisateurService.creer(utilisateur);
     }
     @GetMapping("/read")
     public List<Utilisateur> read(){
+
         return utilisateurService.Lire();
     }
     @PutMapping("/update/{id}")

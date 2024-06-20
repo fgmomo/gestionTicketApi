@@ -5,7 +5,6 @@ import com.gestionticket.ticket.model.Utilisateur;
 import com.gestionticket.ticket.repository.RoleRepository;
 import com.gestionticket.ticket.repository.UtilisateurRepository;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,6 +13,7 @@ import java.util.List;
 public class UtilisateurServiceImpl implements UtilisateurService {
     private final UtilisateurRepository utilisateurRepository;
     private final RoleRepository roleRepository; // Injecter le repository de rôles
+
     @Override
     public Utilisateur creer(Utilisateur utilisateur) {
         Long roleId = utilisateur.getRole().getId(); // Récupère l'ID du rôle depuis l'objet Role de l'utilisateur
