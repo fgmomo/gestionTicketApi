@@ -15,7 +15,7 @@ public class TicketServiceImpl implements TicketService {
     private final PrioriteRepository prioriteRepository; // Injecter le repository de priorite
     private final CategorieRepository categorieRepository;
     private final EtatRepository etatRepository;
-    private final EtatService etatService; // Injection de EtatService
+    private final EtatService etatService;
     @Override
     public Ticket creer(Ticket ticket, Long utilisateurId) {
         ticket.setDate_creation(LocalDateTime.now());
@@ -63,6 +63,6 @@ public class TicketServiceImpl implements TicketService {
     @Override
     public String supprimer(Long id) {
        ticketRepository.deleteById(id);
-        return "Ticket Supprimé!!";
+        return "Ticket Supprimé !!";
     }
 }
