@@ -19,18 +19,18 @@ import java.util.Collections;
 public class Utilisateur implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
     private String nom;
     private String prenom;
+    @Column(unique=true)
     private String email;
     private String motdepasse;
     @ManyToOne
     private Role role;
 
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return (Collections.singletonList(new SimpleGrantedAuthority("ROLE_"+this.role.getLibelle())));
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + this.role.getLibelle()));
     }
 
     @Override
@@ -45,7 +45,6 @@ public class Utilisateur implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-
         return true;
     }
 
@@ -62,4 +61,5 @@ public class Utilisateur implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
-    }}
+    }
+}

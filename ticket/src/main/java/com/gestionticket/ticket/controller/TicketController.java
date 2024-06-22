@@ -16,8 +16,8 @@ public class TicketController {
     private final TicketService ticketService;
 
     @PostMapping("/create")
-    public Ticket create(@RequestBody Ticket ticket, @RequestParam Long utilisateurId){
-        return ticketService.creer(ticket,utilisateurId);
+    public Ticket create(@RequestBody Ticket ticket){
+        return ticketService.creer(ticket);
     }
     @GetMapping("/read")
     public List<Ticket> read(){

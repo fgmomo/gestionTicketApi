@@ -2,6 +2,8 @@ package com.gestionticket.ticket.service;
 
 import com.gestionticket.ticket.model.*;
 import com.gestionticket.ticket.repository.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,34 +19,30 @@ public class TicketServiceImpl implements TicketService {
     private final EtatRepository etatRepository;
     private final EtatService etatService;
     @Override
-    public Ticket creer(Ticket ticket, Long utilisateurId) {
+    public Ticket creer(Ticket ticket) {
         ticket.setDate_creation(LocalDateTime.now());
 
-        // Récupérer l'utilisateur à partir de l'ID fourni
-        Utilisateur apprenant = utilisateurRepository.findById(utilisateurId)
-                .orElseThrow(() -> new RuntimeException("L'utilisateur spécifié n'existe pas : " + utilisateurId));
-
-        // Associer l'utilisateur au ticket
+        // Récupérer l'utilisateur apprenant à partir du contexte de sécurité
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Utilisateur apprenant = utilisateurRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé : " + authentication.getName()));
         ticket.setApprenant(apprenant);
 
-        Long prioriteId = ticket.getPriorite().getId(); // Récupère l'ID de la priorite depuis l'objet Priorite de Ticket
+        Long prioriteId = ticket.getPriorite().getId();
         Long categorieId = ticket.getCategorie().getId();
+
         Priorite priorite = prioriteRepository.findById(prioriteId)
-                .orElseThrow(() -> new RuntimeException("La spécifié n'existe pas : " + prioriteId));
-        ticket.setPriorite(priorite); // Associe le ticket avec la priorité récupérée
+                .orElseThrow(() -> new RuntimeException("La priorité spécifiée n'existe pas : " + prioriteId));
+        ticket.setPriorite(priorite);
 
         Categorie categorie = categorieRepository.findById(categorieId)
-                .orElseThrow(() -> new RuntimeException("La categorie n'existe pas : " + categorieId));
-
-        ticket.setCategorie(categorie); // Associe le ticket avec la categorie récupérée
-
+                .orElseThrow(() -> new RuntimeException("La catégorie spécifiée n'existe pas : " + categorieId));
+        ticket.setCategorie(categorie);
 
         Etat etatOuvert = etatService.getEtatOuvert();
         ticket.setEtat(etatOuvert);
-        ticket.setApprenant(apprenant);
+
         return ticketRepository.save(ticket);
-
-
     }
     @Override
     public List<Ticket> Lire() {
