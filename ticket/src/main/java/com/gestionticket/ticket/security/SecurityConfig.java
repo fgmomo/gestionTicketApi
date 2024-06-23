@@ -25,13 +25,13 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/utilisateur/**").hasRole("Admin");
+                    auth.requestMatchers("/utilisateur/**","/role/**","/priorite/**","/etat/**","/categorie/**").hasRole("Admin");
+                    auth.requestMatchers("/baseconnaissance/create","/baseconnaissance/update","/baseconnaissance/delete").hasRole("Admin");
+                    auth.requestMatchers("/baseconnaissance/read").authenticated();
                     auth.requestMatchers("/ticket/create").hasRole("Apprenant");
                     auth.requestMatchers("/ticket/prendre-en-charge/**", "/ticket/resoudre/**").hasRole("Formateur");
-                    auth.requestMatchers("/role/**").permitAll();
-                    auth.requestMatchers("/priorite/**").permitAll();
-                    auth.requestMatchers("/etat/**").permitAll();
-                    auth.requestMatchers("/categorie/**").permitAll();
+
+
 
                     auth.anyRequest().authenticated();
                 })

@@ -9,15 +9,30 @@ import java.util.Date;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "baseconnaissance")
-    public class BaseConnaissance {
+@Table(name = "base_connaissance")
+public class BaseConnaissance {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     @Column(nullable = false)
     private String question;
+
     @Column(nullable = false)
+    @Lob
     private String reponse;
-    private String ressource;
-    private Date date_update;
+
+    @Column(length = 255)
+    private String lien;
+
+    @Column(length = 255)
+    private String pieceJointe;
+
+    private Date dateUpdate;
+
+    @PreUpdate
+    protected void onUpdate() {
+        dateUpdate = new Date();
+    }
+
 }
