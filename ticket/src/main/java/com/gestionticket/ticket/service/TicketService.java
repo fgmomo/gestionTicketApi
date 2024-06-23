@@ -11,5 +11,7 @@ public interface TicketService {
     List<Ticket> Lire();
     Ticket modifier(Long id, Ticket ticket);
     String supprimer(Long id);
+    public Ticket prendreEnCharge(Long id);
+    public Ticket resoudre(Long id, String reponse);
 
 }

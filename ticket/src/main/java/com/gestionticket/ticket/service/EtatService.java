@@ -12,4 +12,8 @@ public interface EtatService {
     String supprimer(Long id);
 
     Etat getEtatOuvert();
+
+    Etat getEtatResolu();
+
+    Etat getEtatEnCours();
 }

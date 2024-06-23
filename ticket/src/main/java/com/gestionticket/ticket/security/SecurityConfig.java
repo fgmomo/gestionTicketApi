@@ -27,6 +27,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/utilisateur/**").hasRole("Admin");
                     auth.requestMatchers("/ticket/create").hasRole("Apprenant");
+                    auth.requestMatchers("/ticket/prendre-en-charge/**", "/ticket/resoudre/**").hasRole("Formateur");
                     auth.requestMatchers("/role/**").permitAll();
                     auth.requestMatchers("/priorite/**").permitAll();
                     auth.requestMatchers("/etat/**").permitAll();

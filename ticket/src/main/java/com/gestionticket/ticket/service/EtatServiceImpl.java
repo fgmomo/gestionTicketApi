@@ -43,4 +43,12 @@ public class EtatServiceImpl implements EtatService {
         return etatRepository.findByLibelle("ouvert")
                 .orElseThrow(() -> new RuntimeException("L'état 'ouvert' n'existe pas dans la base de données"));
     }
+    public Etat getEtatEnCours() {
+        return etatRepository.findByLibelle("en cours")
+                .orElseThrow(() -> new RuntimeException("L'état 'ouvert' n'existe pas dans la base de données"));
+    }
+    public Etat getEtatResolu() {
+        return etatRepository.findByLibelle("resolu")
+                .orElseThrow(() -> new RuntimeException("L'état 'resolu' n'existe pas dans la base de données"));
+    }
 }
