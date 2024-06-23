@@ -36,7 +36,7 @@ public class UtilisateurController {
     public Utilisateur update(@PathVariable Long id , @RequestBody Utilisateur utilisateur){
         return utilisateurService.modifier(id, utilisateur);
     }
-    @DeleteMapping("/delete")
+    @DeleteMapping("/delete/{id}")
     public String delete(@PathVariable Long id){
         return utilisateurService.supprimer(id);
     }

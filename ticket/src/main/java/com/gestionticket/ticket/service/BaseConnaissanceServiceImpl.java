@@ -21,7 +21,9 @@ public class BaseConnaissanceServiceImpl implements BaseConnaissanceService {
 
     @Override
     public BaseConnaissance creer(BaseConnaissance baseConnaissance) {
+
         return baseConnaissanceRepository.save(baseConnaissance);
+
     }
 
 
