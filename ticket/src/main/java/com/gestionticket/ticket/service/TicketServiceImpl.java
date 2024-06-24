@@ -101,7 +101,7 @@ public class TicketServiceImpl implements TicketService {
 
 
                     String sujet = "Ticket pris en charge";
-                    String corps = "Le ticket N°" + ticket.getId() + " a été pris en charge par le formateur" + formateur.getNom() + ".";
+                    String corps = "Votre ticket N°" + ticket.getId() + " a été pris en charge par le formateur" + formateur.getNom() + ".";
                     emailService.sendSimpleMessage( ticket.getApprenant().getEmail(), sujet, corps);
 
                     return updatedTicket;
