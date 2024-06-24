@@ -1,4 +1,4 @@
-package com.gestionticket.ticket.security;
+package com.gestionticket.ticket.configuration;
 
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;

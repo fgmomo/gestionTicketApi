@@ -71,14 +71,34 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public Ticket modifier(Long id, Ticket ticket) {
+    public Ticket modifier(Long id, Ticket ticketModifie) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String emailUtilisateurConnecte = authentication.getName();
+
+
         return ticketRepository.findById(id)
-                .map(p -> {
-                    p.setDescription(ticket.getDescription());
-                    p.setPriorite(ticket.getPriorite());
-                    p.setCategorie(ticket.getCategorie());
-                    return ticketRepository.save(p);
-                }).orElseThrow(() -> new RuntimeException("Ticket non trouvé"));
+                .map(ticket -> {
+                    Utilisateur proprietaireTicket = ticket.getApprenant();
+
+
+                    if (!proprietaireTicket.getEmail().equals(emailUtilisateurConnecte)) {
+                        throw new RuntimeException("Vous n'êtes pas autorisé à modifier ce ticket.");
+                    }
+
+
+                    if (ticket.getEtat().getLibelle().equals("Résolu")) {
+                        throw new RuntimeException("Ce ticket est déjà résolu et ne peut plus être modifié.");
+                    }
+
+
+                    ticket.setDescription(ticketModifie.getDescription());
+                    ticket.setPriorite(ticketModifie.getPriorite());
+                    ticket.setCategorie(ticketModifie.getCategorie());
+
+
+                    return ticketRepository.save(ticket);
+                })
+                .orElseThrow(() -> new RuntimeException("Ticket non trouvé avec l'ID : " + id));
     }
 
     @Override
@@ -101,7 +121,7 @@ public class TicketServiceImpl implements TicketService {
 
 
                     String sujet = "Ticket pris en charge";
-                    String corps = "Votre ticket N°" + ticket.getId() + " a été pris en charge par le formateur" + formateur.getNom() + ".";
+                    String corps = "Votre ticket N°" + ticket.getId() + " a été pris en charge par " + formateur.getNom() + " " + formateur.getPrenom() + ".";
                     emailService.sendSimpleMessage( ticket.getApprenant().getEmail(), sujet, corps);
 
                     return updatedTicket;
@@ -133,9 +153,9 @@ public class TicketServiceImpl implements TicketService {
                     reponseRepository.save(reponse);
 
 
-                    // Envoyer une notification par email à l'apprenant concerné
+
                     String sujet = "Ticket résolu";
-                    String corps = "Le ticket " + ticket.getId() + " a été résolu par le formateur" + formateur.getPrenom()+ " "+formateur.getNom() +".";
+                    String corps = "Le ticket " + ticket.getId() + " a été résolu par " + formateur.getNom()+" "+formateur.getPrenom() +".";
                     emailService.sendSimpleMessage( ticket.getApprenant().getEmail(), sujet, corps);
 
                     return ticket;
