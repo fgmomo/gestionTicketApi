@@ -21,6 +21,7 @@ public class TicketServiceImpl implements TicketService {
     private final EtatService etatService;
     private final ReponseRepository reponseRepository;
     private final EmailService emailService;
+    private final RoleRepository roleRepository;
 
     @Override
     public Ticket creer(Ticket ticket) {
@@ -47,20 +48,19 @@ public class TicketServiceImpl implements TicketService {
 
         Ticket nouveauTicket = ticketRepository.save(ticket);
 
-        // Envoyer des notifications par email
+        Role role =  roleRepository.findByLibelle("Formateur");
+
+        List<Utilisateur> formateurs = utilisateurRepository.findAllByRole(role);
+        formateurs.forEach(formateur -> {
+            String sujet = "Nouveau ticket soumis";
+            String corps = "Un nouveau ticket a été soumis par l'apprenant " + apprenant.getPrenom()+" " + apprenant.getNom() +".Veuillez le vérifier.";
+            emailService.sendSimpleMessage( formateur.getEmail(), sujet, corps);
+        });
+
+
         String sujet = "Nouveau ticket soumis";
-        String corps = "Un nouveau ticket a été soumis par " + apprenant.getNom() + ". Veuillez le vérifier.";
-
-        // Envoyer un email à l'apprenant
-        emailService.sendSimpleMessage(apprenant.getEmail(), sujet, corps);
-
-        // Envoyer un email aux autres utilisateurs
-        List<Utilisateur> utilisateurs = utilisateurRepository.findAll();
-        for (Utilisateur utilisateur : utilisateurs) {
-            if (!utilisateur.getEmail().equals(apprenant.getEmail())) {
-                emailService.sendSimpleMessage(utilisateur.getEmail(), sujet, corps);
-            }
-        }
+        String corps = "Votre ticket a été soumis avec succès. Patientez..";
+        emailService.sendSimpleMessage( apprenant.getEmail(), sujet, corps);
 
         return nouveauTicket;
     }
@@ -99,10 +99,10 @@ public class TicketServiceImpl implements TicketService {
                     ticket.setEtat(etatEnCours);
                     Ticket updatedTicket = ticketRepository.save(ticket);
 
-                    // Envoyer une notification par email
+
                     String sujet = "Ticket pris en charge";
-                    String corps = "Le ticket " + ticket.getId() + " a été pris en charge par " + formateur.getNom() + ".";
-                    emailService.sendSimpleMessage(ticket.getApprenant().getEmail(), sujet, corps);
+                    String corps = "Le ticket N°" + ticket.getId() + " a été pris en charge par le formateur" + formateur.getNom() + ".";
+                    emailService.sendSimpleMessage( ticket.getApprenant().getEmail(), sujet, corps);
 
                     return updatedTicket;
                 }).orElseThrow(() -> new RuntimeException("Ticket non trouvé"));
@@ -135,8 +135,8 @@ public class TicketServiceImpl implements TicketService {
 
                     // Envoyer une notification par email à l'apprenant concerné
                     String sujet = "Ticket résolu";
-                    String corps = "Le ticket " + ticket.getId() + " a été résolu par " + formateur.getNom() + ".";
-                    emailService.sendSimpleMessage(ticket.getApprenant().getEmail(), sujet, corps);
+                    String corps = "Le ticket " + ticket.getId() + " a été résolu par le formateur" + formateur.getPrenom()+ " "+formateur.getNom() +".";
+                    emailService.sendSimpleMessage( ticket.getApprenant().getEmail(), sujet, corps);
 
                     return ticket;
                 }).orElseThrow(() -> new RuntimeException("Ticket non trouvé"));
