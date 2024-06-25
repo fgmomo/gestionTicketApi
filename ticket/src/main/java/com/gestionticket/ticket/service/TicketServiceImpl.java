@@ -22,6 +22,8 @@ public class TicketServiceImpl implements TicketService {
     private final ReponseRepository reponseRepository;
     private final EmailService emailService;
     private final RoleRepository roleRepository;
+    private final ReponseService reponseService;
+
 
     @Override
     public Ticket creer(Ticket ticket) {
@@ -48,19 +50,18 @@ public class TicketServiceImpl implements TicketService {
 
         Ticket nouveauTicket = ticketRepository.save(ticket);
 
-        Role role =  roleRepository.findByLibelle("Formateur");
+        Role role = roleRepository.findByLibelle("Formateur");
 
         List<Utilisateur> formateurs = utilisateurRepository.findAllByRole(role);
         formateurs.forEach(formateur -> {
             String sujet = "Nouveau ticket soumis";
-            String corps = "Un nouveau ticket a été soumis par l'apprenant " + apprenant.getPrenom()+" " + apprenant.getNom() +".Veuillez le vérifier.";
-            emailService.sendSimpleMessage( formateur.getEmail(), sujet, corps);
+            String corps = "Un nouveau ticket a été soumis par l'apprenant " + apprenant.getPrenom() + " " + apprenant.getNom() + ". Veuillez le vérifier.";
+            emailService.sendSimpleMessage(formateur.getEmail(), sujet, corps);
         });
 
-
         String sujet = "Nouveau ticket soumis";
-        String corps = "Votre ticket a été soumis avec succès. Patientez..";
-        emailService.sendSimpleMessage( apprenant.getEmail(), sujet, corps);
+        String corps = "Votre ticket a été soumis avec succès. Patientez...";
+        emailService.sendSimpleMessage(apprenant.getEmail(), sujet, corps);
 
         return nouveauTicket;
     }
@@ -75,26 +76,21 @@ public class TicketServiceImpl implements TicketService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String emailUtilisateurConnecte = authentication.getName();
 
-
         return ticketRepository.findById(id)
                 .map(ticket -> {
                     Utilisateur proprietaireTicket = ticket.getApprenant();
-
 
                     if (!proprietaireTicket.getEmail().equals(emailUtilisateurConnecte)) {
                         throw new RuntimeException("Vous n'êtes pas autorisé à modifier ce ticket.");
                     }
 
-
-                    if (ticket.getEtat().getLibelle().equals("Résolu")) {
-                        throw new RuntimeException("Ce ticket est déjà résolu et ne peut plus être modifié.");
+                    if (ticket.getEtat().getLibelle().equals("en cours") || ticket.getEtat().getLibelle().equals("resolu")) {
+                        throw new RuntimeException("Ce ticket ne peut plus être modifié.");
                     }
-
 
                     ticket.setDescription(ticketModifie.getDescription());
                     ticket.setPriorite(ticketModifie.getPriorite());
                     ticket.setCategorie(ticketModifie.getCategorie());
-
 
                     return ticketRepository.save(ticket);
                 })
@@ -111,6 +107,10 @@ public class TicketServiceImpl implements TicketService {
     public Ticket prendreEnCharge(Long id) {
         return ticketRepository.findById(id)
                 .map(ticket -> {
+                    if (ticket.getEtat().getLibelle().equals("en cours") || ticket.getEtat().getLibelle().equals("resolu")) {
+                        throw new RuntimeException("Ce ticket est déjà pris en charge ou résolu.");
+                    }
+
                     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                     Utilisateur formateur = utilisateurRepository.findByEmail(authentication.getName())
                             .orElseThrow(() -> new RuntimeException("Formateur non trouvé : " + authentication.getName()));
@@ -119,10 +119,9 @@ public class TicketServiceImpl implements TicketService {
                     ticket.setEtat(etatEnCours);
                     Ticket updatedTicket = ticketRepository.save(ticket);
 
-
                     String sujet = "Ticket pris en charge";
                     String corps = "Votre ticket N°" + ticket.getId() + " a été pris en charge par " + formateur.getNom() + " " + formateur.getPrenom() + ".";
-                    emailService.sendSimpleMessage( ticket.getApprenant().getEmail(), sujet, corps);
+                    emailService.sendSimpleMessage(ticket.getApprenant().getEmail(), sujet, corps);
 
                     return updatedTicket;
                 }).orElseThrow(() -> new RuntimeException("Ticket non trouvé"));
@@ -132,6 +131,15 @@ public class TicketServiceImpl implements TicketService {
     public Ticket resoudre(Long id, String reponseContenu) {
         return ticketRepository.findById(id)
                 .map(ticket -> {
+                    Etat etatResolu = etatService.getEtatResolu();
+                    if (ticket.getEtat().equals(etatResolu)) {
+                        throw new RuntimeException("Le ticket a déjà été résolu.");
+                    }
+
+                    if (!ticket.getEtat().getLibelle().equals("en cours")) {
+                        throw new RuntimeException("Le ticket doit être pris en charge avant d'être résolu.");
+                    }
+
                     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                     Utilisateur formateur = utilisateurRepository.findByEmail(authentication.getName())
                             .orElseThrow(() -> new RuntimeException("Formateur non trouvé : " + authentication.getName()));
@@ -142,23 +150,20 @@ public class TicketServiceImpl implements TicketService {
                     reponse.setTicket(ticket);
                     reponse.setAuteur(formateur);
 
-                    ticket.setReponseFormateur(reponse);
+                    reponseRepository.save(reponse);
 
+                    ticket.setReponseFormateur(reponse);
                     ticket.setDate_resolution(LocalDateTime.now());
-                    Etat etatResolu = etatService.getEtatResolu();
                     ticket.setEtat(etatResolu);
 
                     ticketRepository.save(ticket);
 
-                    reponseRepository.save(reponse);
-
-
-
                     String sujet = "Ticket résolu";
-                    String corps = "Le ticket " + ticket.getId() + " a été résolu par " + formateur.getNom()+" "+formateur.getPrenom() +".";
-                    emailService.sendSimpleMessage( ticket.getApprenant().getEmail(), sujet, corps);
+                    String corps = "Le ticket " + ticket.getId() + " a été résolu par " + formateur.getNom() + " " + formateur.getPrenom() + ".";
+                    emailService.sendSimpleMessage(ticket.getApprenant().getEmail(), sujet, corps);
 
                     return ticket;
                 }).orElseThrow(() -> new RuntimeException("Ticket non trouvé"));
     }
+
 }

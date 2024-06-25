@@ -16,6 +16,7 @@ import java.util.List;
 public class CategorieController {
 
     private final CategorieService categorieService;
+
     @Operation(summary = "Créer une nouvelle catégorie", description = "Ajoute une nouvelle catégorie au système.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Catégorie créée avec succès"),
